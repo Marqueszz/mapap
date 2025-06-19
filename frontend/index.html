@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mapa de Problemas Urbanos</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 500px;
+      margin-bottom: 1rem;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 400px;
+    }
+    label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mapa de Problemas Urbanos</h1>
+
+  <div id="map"></div>
+
+  <form id="problemaForm">
+    <label for="tipo">Tipo de problema:</label>
+    <input type="text" id="tipo" required />
+
+    <label for="descricao">Descrição:</label>
+    <textarea id="descricao" required></textarea>
+
+    <label for="data">Data:</label>
+    <input type="date" id="data" required />
+
+    <button type="submit">Registrar Problema</button>
+  </form>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    let lat = null;
+    let lng = null;
+
+    const map = L.map('map');
+
+    // Tenta usar localização do usuário
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        map.setView([latitude, longitude], 15);
+      },
+      () => {
+        map.setView([-19.7668, -44.0868], 13); // fallback: Ribeirão das Neves - MG
+      }
+    );
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Captura clique no mapa
+    map.on('click', function (e) {
+      lat = e.latlng.lat;
+      lng = e.latlng.lng;
+      alert(`Local selecionado:\nLatitude: ${lat.toFixed(5)}\nLongitude: ${lng.toFixed(5)}`);
+    });
+
+    // Ícone personalizado
+    const problemaIcone = L.icon({
+      iconUrl: './icons/problem.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32]
+    });
+
+    // Carrega problemas do servidor
+    fetch('http://localhost:3000/problemas')
+      .then(res => res.json())
+      .then(dados => {
+        dados.forEach(p => {
+          if (p.latitude && p.longitude) {
+            L.marker([p.latitude, p.longitude], { icon: problemaIcone })
+              .addTo(map)
+              .bindPopup(`<b>${p.tipo}</b><br>${p.descricao}<br>${p.data}`);
+          }
+        });
+      });
+
+    // Envia formulário
+    document.getElementById('problemaForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      if (lat === null || lng === null) {
+        alert("Clique no mapa para selecionar o local.");
+        return;
+      }
+
+      const tipo = document.getElementById('tipo').value;
+      const descricao = document.getElementById('descricao').value;
+      const data = document.getElementById('data').value;
+
+      const resposta = await fetch('http://localhost:3000/problemas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo, descricao, data, latitude: lat, longitude: lng })
+      });
+
+      if (resposta.ok) {
+        alert('Problema registrado com sucesso!');
+        L.marker([lat, lng], { icon: problemaIcone })
+          .addTo(map)
+          .bindPopup(`<b>${tipo}</b><br>${descricao}<br>${data}`);
+        e.target.reset();
+        lat = null;
+        lng = null;
+      } else {
+        alert('Erro ao registrar o problema.');
+      }
+    });
+  </script>
+</body>
+</html>
