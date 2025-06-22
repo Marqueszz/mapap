@@ -32,16 +32,16 @@ app.get('/problemas', async (req, res) => {
 
 // POST: Insere novo problema
 app.post('/problemas', async (req, res) => {
-  const { tipo, descricao, data, latitude, longitude } = req.body;
+  const { tipo, descricao, data, latitude, longitude, categoria } = req.body;
 
-  if (!tipo || !descricao || !data || latitude == null || longitude == null) {
+  if (!tipo || !descricao || !data || latitude == null || longitude == null || !categoria) {
     return res.status(400).json({ erro: 'Campos obrigatórios ausentes' });
   }
 
   try {
     await pool.query(
-      'INSERT INTO problemas (tipo, descricao, data, latitude, longitude) VALUES (?, ?, ?, ?, ?)',
-      [tipo, descricao, data, latitude, longitude]
+      'INSERT INTO problemas (tipo, descricao, data, latitude, longitude, categoria) VALUES (?, ?, ?, ?, ?, ?)',
+      [tipo, descricao, data, latitude, longitude, categoria]
     );
     res.status(201).json({ sucesso: true });
   } catch (error) {

@@ -112,3 +112,23 @@ button:hover {
     padding: 20px;
   }
 }
+
+select {
+  padding: 10px 12px;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  background-color: white;
+  transition: border-color 0.3s ease;
+}
+
+select:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 5px #3b82f6aa;
+}
+
+option {
+  font-size: 1rem;
+}

@@ -4,25 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mapa de Problemas Urbanos</title>
-  <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    #map {
-      height: 500px;
-      margin-bottom: 1rem;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      max-width: 400px;
-    }
-    label {
-      font-weight: bold;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
   <h1>Mapa de Problemas Urbanos</h1>
 
   <div id="map"></div>
@@ -30,6 +16,18 @@
   <form id="problemaForm">
     <label for="tipo">Tipo de problema:</label>
     <input type="text" id="tipo" required />
+
+    <label for="categoria">Categoria:</label>
+    <select id="categoria" required>
+      <option value="">Selecione</option>
+      <option value="infraestrutura">Infraestrutura</option>
+      <option value="meio_ambiente">Meio Ambiente</option>
+      <option value="mobilidade">Mobilidade</option>
+      <option value="seguranca">Segurança</option>
+      <option value="saneamento">Saneamento</option>
+      <option value="habitacao">Habitação</option>
+      <option value="outros">Outros</option>
+    </select>
 
     <label for="descricao">Descrição:</label>
     <textarea id="descricao" required></textarea>
@@ -42,48 +40,77 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    let lat = null;
-    let lng = null;
-
-    const map = L.map('map');
-
-    // Tenta usar localização do usuário
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        map.setView([latitude, longitude], 15);
-      },
-      () => {
-        map.setView([-19.7668, -44.0868], 13); // fallback: Ribeirão das Neves - MG
-      }
-    );
+    const map = L.map('map').setView([-19.7621, -44.084], 13); // Ajuste para sua cidade
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    let lat = null;
+    let lng = null;
+
+    // Ícones personalizados por categoria
+    const icones = {
+      infraestrutura: L.icon({
+        iconUrl: './icons/infraestrutura.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      meio_ambiente: L.icon({
+        iconUrl: './icons/meio_ambiente.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      mobilidade: L.icon({
+        iconUrl: './icons/mobilidade.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      seguranca: L.icon({
+        iconUrl: './icons/seguranca.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      saneamento: L.icon({
+        iconUrl: './icons/saneamento.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      habitacao: L.icon({
+        iconUrl: './icons/habitacao.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      outros: L.icon({
+        iconUrl: './icons/outros.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      })
+    };
+
     // Captura clique no mapa
     map.on('click', function (e) {
       lat = e.latlng.lat;
       lng = e.latlng.lng;
-      alert(`Local selecionado:\nLatitude: ${lat.toFixed(5)}\nLongitude: ${lng.toFixed(5)}`);
+      alert(`Local do problema selecionado:\nLatitude: ${lat.toFixed(5)}\nLongitude: ${lng.toFixed(5)}`);
     });
 
-    // Ícone personalizado
-    const problemaIcone = L.icon({
-      iconUrl: './icons/problem.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32]
-    });
-
-    // Carrega problemas do servidor
+    // Carrega problemas existentes do backend
     fetch('http://localhost:3000/problemas')
       .then(res => res.json())
       .then(dados => {
         dados.forEach(p => {
           if (p.latitude && p.longitude) {
-            L.marker([p.latitude, p.longitude], { icon: problemaIcone })
+            const icone = icones[p.categoria] || icones.outros;
+
+            L.marker([p.latitude, p.longitude], { icon: icone })
               .addTo(map)
               .bindPopup(`<b>${p.tipo}</b><br>${p.descricao}<br>${p.data}`);
           }
@@ -95,28 +122,31 @@
       e.preventDefault();
 
       if (lat === null || lng === null) {
-        alert("Clique no mapa para selecionar o local.");
+        alert("Por favor, clique no mapa para selecionar o local do problema.");
         return;
       }
 
       const tipo = document.getElementById('tipo').value;
+      const categoria = document.getElementById('categoria').value;
       const descricao = document.getElementById('descricao').value;
       const data = document.getElementById('data').value;
 
       const resposta = await fetch('http://localhost:3000/problemas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipo, descricao, data, latitude: lat, longitude: lng })
+        body: JSON.stringify({
+          tipo,
+          descricao,
+          data,
+          latitude: lat,
+          longitude: lng,
+          categoria
+        })
       });
 
       if (resposta.ok) {
         alert('Problema registrado com sucesso!');
-        L.marker([lat, lng], { icon: problemaIcone })
-          .addTo(map)
-          .bindPopup(`<b>${tipo}</b><br>${descricao}<br>${data}`);
-        e.target.reset();
-        lat = null;
-        lng = null;
+        location.reload();
       } else {
         alert('Erro ao registrar o problema.');
       }
