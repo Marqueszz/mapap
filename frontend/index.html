@@ -14,33 +14,33 @@
 <body>
 
   <h1>Mapa de Problemas Urbanos</h1>
+  <main class="container">
+    <div id="map"></div>
+    <form id="problemaForm">
+      <label for="tipo">Tipo de problema:</label>
+      <input type="text" id="tipo" required />
 
-  <div id="map"></div>
+      <label for="categoria">Categoria:</label>
+      <select id="categoria" required>
+        <option value="">Selecione</option>
+        <option value="infraestrutura">Infraestrutura</option>
+        <option value="meio_ambiente">Meio Ambiente</option>
+        <option value="mobilidade">Mobilidade</option>
+        <option value="seguranca">Segurança</option>
+        <option value="saneamento">Saneamento</option>
+        <option value="habitacao">Habitação</option>
+        <option value="outros">Outros</option>
+      </select>
 
-  <form id="problemaForm">
-    <label for="tipo">Tipo de problema:</label>
-    <input type="text" id="tipo" required />
+      <label for="descricao">Descrição:</label>
+      <textarea id="descricao" required></textarea>
 
-    <label for="categoria">Categoria:</label>
-    <select id="categoria" required>
-      <option value="">Selecione</option>
-      <option value="infraestrutura">Infraestrutura</option>
-      <option value="meio_ambiente">Meio Ambiente</option>
-      <option value="mobilidade">Mobilidade</option>
-      <option value="seguranca">Segurança</option>
-      <option value="saneamento">Saneamento</option>
-      <option value="habitacao">Habitação</option>
-      <option value="outros">Outros</option>
-    </select>
+      <label for="data">Data:</label>
+      <input type="date" id="data" required />
 
-    <label for="descricao">Descrição:</label>
-    <textarea id="descricao" required></textarea>
-
-    <label for="data">Data:</label>
-    <input type="date" id="data" required />
-
-    <button type="submit">Registrar Problema</button>
-  </form>
+      <button type="submit">Registrar Problema</button>
+    </form>
+  </main>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
@@ -113,10 +113,10 @@
         dados.forEach(p => {
           if (p.latitude && p.longitude) {
             const icone = icones[p.categoria] || icones.outros;
-
+            const dataFormatada = new Date(p.data).toLocaleDateString('pt-BR');
             L.marker([p.latitude, p.longitude], { icon: icone })
               .addTo(map)
-              .bindPopup(`<b>${p.tipo}</b><br>${p.descricao}<br>${p.data}`);
+              .bindPopup(`<b>${p.tipo}</b><br>${p.descricao}<br>Data<b>: ${dataFormatada}`);
           }
         });
       });

@@ -1,4 +1,4 @@
-/* Reset básico */
+/* RESET */
 * {
   margin: 0;
   padding: 0;
@@ -25,27 +25,37 @@ h1 {
   text-align: center;
 }
 
-#map {
+/* CONTAINER FLEX PARA MAPA E FORMULARIO */
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  align-items: flex-start;
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
+}
+
+/* MAPA */
+#map {
+  flex: 2 1 500px;
   height: 500px;
   border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease;
 }
 
 #map:hover {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* FORMULÁRIO */
 form {
-  width: 100%;
-  max-width: 400px;
+  flex: 1 1 280px;
   background: white;
   padding: 25px 30px;
   border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -53,7 +63,7 @@ form {
 }
 
 form:hover {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 label {
@@ -64,7 +74,8 @@ label {
 
 input[type="text"],
 input[type="date"],
-textarea {
+textarea,
+select {
   padding: 12px 15px;
   border: 2px solid #cbd5e1;
   border-radius: 8px;
@@ -76,7 +87,8 @@ textarea {
 
 input[type="text"]:focus,
 input[type="date"]:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: #3b82f6;
   outline: none;
   box-shadow: 0 0 6px #3b82f6aa;
@@ -102,33 +114,22 @@ button:hover {
   background: #1e40af;
 }
 
-/* Responsivo */
-@media (max-width: 480px) {
+option {
+  font-size: 1rem;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
   #map {
     height: 350px;
   }
 
   form {
-    padding: 20px;
+    width: 100%;
+    max-width: 100%;
   }
-}
-
-select {
-  padding: 10px 12px;
-  border: 2px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-family: inherit;
-  background-color: white;
-  transition: border-color 0.3s ease;
-}
-
-select:focus {
-  border-color: #3b82f6;
-  outline: none;
-  box-shadow: 0 0 5px #3b82f6aa;
-}
-
-option {
-  font-size: 1rem;
 }
