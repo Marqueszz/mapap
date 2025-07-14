@@ -1,50 +1,385 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mapa de Problemas Urbanos</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
-  <link rel="manifest" href="favicon_io/site.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="./favicon_io/site.webmanifest">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* ======== VARIÁVEIS DE COR ======== */
+    :root {
+      --azul-primario: #1e3a8a;
+      --azul-secundario: #2563eb;
+      --azul-hover: #1e40af;
+      --azul-claro: #dbeafe;
+      --cinza-claro: #f8fafc;
+      --cinza-borda: #e2e8f0;
+      --sombra: rgba(30, 58, 138, 0.15);
+      --verde: #10b981;
+      --vermelho: #ef4444;
+      --amarelo: #f59e0b;
+      --azul-info: #3b82f6;
+    }
+
+    /* ======== RESET & BASE ======== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--cinza-claro);
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    /* ======== HEADER MODERNO ======== */
+    .main-header {
+      background: linear-gradient(135deg, var(--azul-primario) 0%, var(--azul-secundario) 100%);
+      color: white;
+      width: 100%;
+      padding: 1.5rem 0;
+      box-shadow: 0 4px 12px var(--sombra);
+      margin-bottom: 2rem;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      width: 90%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .header-content h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .header-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    /* ======== CONTAINER PRINCIPAL ======== */
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.5rem;
+      justify-content: center;
+      align-items: flex-start;
+      width: 90%;
+      max-width: 1300px;
+      margin: 0 auto 3rem;
+    }
+
+    /* ======== MAPA ATUALIZADO ======== */
+    #map {
+      flex: 2 1 600px;
+      height: 550px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px var(--sombra);
+      border: 1px solid var(--cinza-borda);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      z-index: 1;
+    }
+
+    #map:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(30, 58, 138, 0.2);
+    }
+
+    /* ======== FORMULÁRIO MODERNO ======== */
+    form {
+      flex: 1 1 350px;
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px var(--sombra);
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+      transition: transform 0.3s ease;
+      border: 1px solid var(--cinza-borda);
+    }
+
+    form:hover {
+      transform: translateY(-5px);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-weight: 500;
+      color: var(--azul-primario);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    textarea,
+    select {
+      padding: 14px;
+      border: 2px solid var(--cinza-borda);
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: 'Poppins', sans-serif;
+      background: var(--cinza-claro);
+      transition: all 0.25s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--azul-secundario);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    /* ======== UPLOAD DE ARQUIVO ======== */
+    .file-upload {
+      position: relative;
+      margin-top: 0.3rem;
+    }
+
+    .file-upload input[type="file"] {
+      display: none;
+    }
+
+    .upload-btn {
+      display: inline-block;
+      background: var(--azul-claro);
+      color: var(--azul-primario);
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: 2px dashed #bfdbfe;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .upload-btn:hover {
+      background: #c7d2fe;
+      border-color: var(--azul-secundario);
+    }
+
+    /* ======== BOTÃO ATUALIZADO ======== */
+    button {
+      background: linear-gradient(135deg, var(--azul-primario) 0%, var(--azul-secundario) 100%);
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 16px 0;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* ======== NOTIFICAÇÃO ======== */
+    .notification {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--verde);
+      color: white;
+      padding: 18px 25px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+
+    .notification.error {
+      background: var(--vermelho);
+    }
+
+    .notification.info {
+      background: var(--azul-info);
+    }
+
+    .notification.warning {
+      background: var(--amarelo);
+    }
+
+    .notification.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .notification i {
+      font-size: 1.4rem;
+    }
+
+    /* ======== RESPONSIVIDADE ======== */
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    
+      #map {
+        height: 400px;
+      }
+    
+      .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+    
+      .header-content h1 {
+        justify-content: center;
+      }
+    
+      .header-info {
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-content h1 {
+        font-size: 1.8rem;
+      }
+    
+      form {
+        padding: 1.5rem;
+      }
+    
+      .notification {
+        width: 90%;
+        left: 5%;
+        right: 5%;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <h1>Mapa de Problemas Urbanos</h1>
+  <header class="main-header">
+    <div class="header-content">
+      <h1>
+        <i class="fas fa-map-marked-alt"></i>
+        Mapa de Problemas Urbanos
+      </h1>
+      <div class="header-info">
+        <span id="problemaCount">0 problemas registrados</span>
+        <span id="dataAtual"></span>
+      </div>
+    </div>
+  </header>
+
   <main class="container">
     <div id="map"></div>
-    <form id="problemaForm">
-      <label for="tipo">Tipo de problema:</label>
-      <input type="text" id="tipo" required />
+    <form id="problemaForm" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="tipo"><i class="fas fa-tag"></i> Tipo de problema:</label>
+        <input type="text" id="tipo" required />
+      </div>
 
-      <label for="categoria">Categoria:</label>
-      <select id="categoria" required>
-        <option value="">Selecione</option>
-        <option value="infraestrutura">Infraestrutura</option>
-        <option value="meio_ambiente">Meio Ambiente</option>
-        <option value="mobilidade">Mobilidade</option>
-        <option value="seguranca">Segurança</option>
-        <option value="saneamento">Saneamento</option>
-        <option value="habitacao">Habitação</option>
-        <option value="outros">Outros</option>
-      </select>
+      <div class="form-group">
+        <label for="categoria"><i class="fas fa-list"></i> Categoria:</label>
+        <select id="categoria" required>
+          <option value="">Selecione</option>
+          <option value="infraestrutura">Infraestrutura</option>
+          <option value="meio_ambiente">Meio Ambiente</option>
+          <option value="mobilidade">Mobilidade</option>
+          <option value="seguranca">Segurança</option>
+          <option value="saneamento">Saneamento</option>
+          <option value="habitacao">Habitação</option>
+          <option value="outros">Outros</option>
+        </select>
+      </div>
 
-      <label for="descricao">Descrição:</label>
-      <textarea id="descricao" required></textarea>
+      <div class="form-group">
+        <label for="descricao"><i class="fas fa-align-left"></i> Descrição:</label>
+        <textarea id="descricao" required></textarea>
+      </div>
 
-      <label for="data">Data:</label>
-      <input type="date" id="data" required />
+      <div class="form-group">
+        <label for="data"><i class="fas fa-calendar-day"></i> Data:</label>
+        <input type="date" id="data" required />
+      </div>
 
-      <button type="submit">Registrar Problema</button>
+      <div class="form-group">
+        <label for="foto"><i class="fas fa-camera"></i> Adicionar foto (opcional):</label>
+        <div class="file-upload">
+          <input type="file" id="foto" accept="image/*">
+          <label for="foto" class="upload-btn">
+            <i class="fas fa-upload"></i> Escolher arquivo
+          </label>
+        </div>
+      </div>
+      
+      <button type="submit">
+        <i class="fas fa-paper-plane"></i> Registrar Problema
+      </button>
     </form>
   </main>
 
+  <div id="notification" class="notification">
+    <i class="fas fa-check-circle"></i>
+    <span id="notificationText"></span>
+  </div>
+
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
   <script>
-    const map = L.map('map').setView([-19.7621, -44.084], 13); // Ajuste para sua cidade
+    const map = L.map('map').setView([-19.7621, -44.084], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
@@ -56,43 +391,43 @@
     // Ícones personalizados por categoria
     const icones = {
       infraestrutura: L.icon({
-        iconUrl: './icons/infraestrutura.png',
+        iconUrl: ' https://cdn-icons-png.flaticon.com/512/2658/2658471.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       meio_ambiente: L.icon({
-        iconUrl: './icons/meio_ambiente.png',
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/4320/4320337.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       mobilidade: L.icon({
-        iconUrl: './icons/mobilidade.png',
+        iconUrl: ' https://cdn-icons-png.flaticon.com/512/3515/3515072.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       seguranca: L.icon({
-        iconUrl: './icons/seguranca.png',
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/2622/2622304.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       saneamento: L.icon({
-        iconUrl: './icons/saneamento.png',
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       habitacao: L.icon({
-        iconUrl: './icons/habitacao.png',
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/4810/4810741.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       outros: L.icon({
-        iconUrl: './icons/outros.png',
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828961.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
@@ -103,58 +438,134 @@
     map.on('click', function (e) {
       lat = e.latlng.lat;
       lng = e.latlng.lng;
-      alert(`Local do problema selecionado:\nLatitude: ${lat.toFixed(5)}\nLongitude: ${lng.toFixed(5)}`);
+      showNotification(`Local selecionado: Latitude ${lat.toFixed(5)}, Longitude ${lng.toFixed(5)}`, 'info');
     });
 
-    // Carrega problemas existentes do backend
-    fetch('http://localhost:3000/problemas')
-      .then(res => res.json())
-      .then(dados => {
-        dados.forEach(p => {
-          if (p.latitude && p.longitude) {
-            const icone = icones[p.categoria] || icones.outros;
-            const dataFormatada = new Date(p.data).toLocaleDateString('pt-BR');
-            L.marker([p.latitude, p.longitude], { icon: icone })
-              .addTo(map)
-              .bindPopup(`<b>${p.tipo}</b><br>${p.descricao}<br>Data<b>: ${dataFormatada}`);
-          }
-        });
+  // Carrega problemas existentes do backend
+  fetch('http://localhost:3000/problemas')
+    .then(res => res.json())
+    .then(dados => {
+      document.getElementById('problemaCount').textContent = 
+        `${dados.length} ${dados.length === 1 ? 'problema' : 'problemas'} registrados`;
+        
+      dados.forEach(p => {
+        if (p.latitude && p.longitude) {
+          const icone = icones[p.categoria] || icones.outros;
+          const dataFormatada = new Date(p.data).toLocaleDateString('pt-BR');
+          L.marker([p.latitude, p.longitude], { icon: icone })
+          .addTo(map)
+          .bindPopup(`
+            <div style="min-width: 250px;">
+              <b>${p.tipo}</b><br>
+              ${p.descricao}<br>
+              <small>Data: ${dataFormatada}</small>
+              ${p.foto ? `
+              <div style="margin-top:10px; text-align:center;">
+                <img src="http://localhost:3000/${p.foto}" 
+                     style="max-width:100%; max-height:150px; 
+                            display:block; margin:0 auto;
+                            border-radius:6px;
+                            object-fit:contain;">
+              </div>
+              ` : ''}
+            </div>
+          `);
+        }
       });
+    })
+    .catch(error => {
+      console.error('Erro ao carregar problemas:', error);
+      showNotification('Erro ao carregar problemas', 'error');
+    });
+
+
+
+    // Atualizar data atual
+    const dataAtual = new Date();
+    document.getElementById('dataAtual').textContent = 
+      dataAtual.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
 
     // Envia formulário
     document.getElementById('problemaForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
+  e.preventDefault();
 
-      if (lat === null || lng === null) {
-        alert("Por favor, clique no mapa para selecionar o local do problema.");
-        return;
-      }
+  if (lat === null || lng === null) {
+    showNotification("Por favor, clique no mapa para selecionar o local do problema.", 'error');
+    return;
+  }
 
-      const tipo = document.getElementById('tipo').value;
-      const categoria = document.getElementById('categoria').value;
-      const descricao = document.getElementById('descricao').value;
-      const data = document.getElementById('data').value;
+  // Coletar dados do formulário
+  const formData = new FormData();
+  formData.append('tipo', document.getElementById('tipo').value);
+  formData.append('categoria', document.getElementById('categoria').value);
+  formData.append('descricao', document.getElementById('descricao').value);
+  formData.append('data', document.getElementById('data').value);
+  formData.append('latitude', lat);
+  formData.append('longitude', lng);
+  
+  // Adicionar arquivo de imagem, se existir
+  const fotoInput = document.getElementById('foto');
+  if (fotoInput.files.length > 0) {
+    formData.append('foto', fotoInput.files[0]);
+  }
 
-      const resposta = await fetch('http://localhost:3000/problemas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tipo,
-          descricao,
-          data,
-          latitude: lat,
-          longitude: lng,
-          categoria
-        })
-      });
-
-      if (resposta.ok) {
-        alert('Problema registrado com sucesso!');
-        location.reload();
-      } else {
-        alert('Erro ao registrar o problema.');
-      }
+  try {
+    const resposta = await fetch('http://localhost:3000/problemas', {
+      method: 'POST',
+      body: formData // Não é necessário definir 'Content-Type' manualmente
     });
+
+    const resultado = await resposta.json();
+
+    if (resposta.ok) {
+      showNotification('Problema registrado com sucesso!', 'success');
+      // Limpa o formulário
+      document.getElementById('problemaForm').reset();
+      // Recarrega os problemas
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showNotification(resultado.message || 'Erro ao registrar o problema.', 'error');
+    }
+  } catch (error) {
+    console.error('Erro ao enviar formulário:', error);
+    showNotification('Erro de conexão com o servidor.', 'error');
+  }
+});
+    // Função para mostrar notificação
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      const notificationText = document.getElementById('notificationText');
+      
+      notificationText.textContent = message;
+      notification.className = 'notification'; // Reseta as classes
+      
+      // Adiciona classes baseadas no tipo
+      notification.classList.add(type);
+      notification.classList.add('visible');
+      
+      // Ícone baseado no tipo
+      let iconClass;
+      switch(type) {
+        case 'success':
+          iconClass = 'fas fa-check-circle';
+          break;
+        case 'error':
+          iconClass = 'fas fa-exclamation-circle';
+          break;
+        case 'info':
+          iconClass = 'fas fa-info-circle';
+          break;
+        default:
+          iconClass = 'fas fa-info-circle';
+      }
+      
+      notification.innerHTML = `<i class="${iconClass}"></i> <span id="notificationText">${message}</span>`;
+      
+      // Esconde a notificação após 5 segundos
+      setTimeout(() => {
+        notification.classList.remove('visible');
+      }, 5000);
+    }
   </script>
 </body>
 </html>
