@@ -7,8 +7,8 @@
   <link rel="icon" type="image/png" sizes="16x16" href="./favicon_io/favicon-16x16.png">
   <link rel="manifest" href="./favicon_io/site.webmanifest">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -41,7 +41,7 @@
       line-height: 1.6;
     }
 
-    /* ======== HEADER MODERNO ======== */
+    /* ======== HEADER ======== */
     .main-header {
       background: linear-gradient(135deg, var(--azul-primario) 0%, var(--azul-secundario) 100%);
       color: white;
@@ -49,6 +49,7 @@
       padding: 1.5rem 0;
       box-shadow: 0 4px 12px var(--sombra);
       margin-bottom: 2rem;
+      border-radius: 5px;
     }
 
     .header-content {
@@ -106,7 +107,7 @@
       box-shadow: 0 12px 30px rgba(30, 58, 138, 0.2);
     }
 
-    /* ======== FORMULÁRIO MODERNO ======== */
+    /* ======== FORMULÁRIO ======== */
     form {
       flex: 1 1 350px;
       background: white;
@@ -306,6 +307,43 @@
         right: 5%;
       }
     }
+    /* Estilos para os clusters de marcadores */
+.marker-cluster-small {
+    background-color: rgba(181, 226, 140, 0.6);
+}
+.marker-cluster-small div {
+    background-color: rgba(110, 204, 57, 0.6);
+}
+
+.marker-cluster-medium {
+    background-color: rgba(241, 211, 87, 0.6);
+}
+.marker-cluster-medium div {
+    background-color: rgba(240, 194, 12, 0.6);
+}
+
+.marker-cluster-large {
+    background-color: rgba(253, 156, 115, 0.6);
+}
+.marker-cluster-large div {
+    background-color: rgba(241, 128, 23, 0.6);
+}
+
+/* Estilo para o número dentro do cluster */
+.marker-cluster div {
+    width: 30px;
+    height: 30px;
+    margin-left: 5px;
+    margin-top: 5px;
+    text-align: center;
+    border-radius: 15px;
+    font: 12px "Poppins", Arial, Helvetica, sans-serif;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
   </style>
 </head>
 <body>
@@ -378,6 +416,8 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
   <script>
     const map = L.map('map').setView([-19.7621, -44.084], 13);
 
@@ -391,43 +431,43 @@
     // Ícones personalizados por categoria
     const icones = {
       infraestrutura: L.icon({
-        iconUrl: ' https://cdn-icons-png.flaticon.com/512/2658/2658471.png',
+        iconUrl: 'icons/infraestrutura.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       meio_ambiente: L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/4320/4320337.png',
+        iconUrl: 'icons/meio_ambiente.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       mobilidade: L.icon({
-        iconUrl: ' https://cdn-icons-png.flaticon.com/512/3515/3515072.png',
+        iconUrl: 'icons/mobilidade.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       seguranca: L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/2622/2622304.png',
+        iconUrl: 'icons/seguranca.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       saneamento: L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png',
+        iconUrl: 'icons/saneamento.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       habitacao: L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/4810/4810741.png',
+        iconUrl: 'icons/habitacao.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
       }),
       outros: L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828961.png',
+        iconUrl: 'icons/outros.png',
         iconSize: [32, 32],
         iconAnchor: [16, 32],
         popupAnchor: [0, -32]
@@ -442,18 +482,43 @@
     });
 
   // Carrega problemas existentes do backend
-  fetch('http://localhost:3000/problemas')
-    .then(res => res.json())
-    .then(dados => {
-      document.getElementById('problemaCount').textContent = 
-        `${dados.length} ${dados.length === 1 ? 'problema' : 'problemas'} registrados`;
-        
-      dados.forEach(p => {
-        if (p.latitude && p.longitude) {
-          const icone = icones[p.categoria] || icones.outros;
-          const dataFormatada = new Date(p.data).toLocaleDateString('pt-BR');
-          L.marker([p.latitude, p.longitude], { icon: icone })
-          .addTo(map)
+// Crie um grupo de clusters no início do seu script (após definir o mapa)
+const markers = L.markerClusterGroup({
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    maxClusterRadius: 80, // Ajuste conforme necessário
+    iconCreateFunction: function(cluster) {
+        const childCount = cluster.getChildCount();
+        let size = 'small';
+        if (childCount > 50) {
+            size = 'large';
+        } else if (childCount > 10) {
+            size = 'medium';
+        }
+        return new L.DivIcon({
+            html: `<div><span>${childCount}</span></div>`,
+            className: `marker-cluster marker-cluster-${size}`,
+            iconSize: new L.Point(40, 40)
+        });
+    }
+});
+
+// Adicione o grupo de clusters ao mapa
+map.addLayer(markers);
+
+// Carrega problemas existentes do backend
+fetch('http://localhost:3000/problemas')
+  .then(res => res.json())
+  .then(dados => {
+    document.getElementById('problemaCount').textContent = 
+      `${dados.length} ${dados.length === 1 ? 'problema' : 'problemas'} registrados`;
+      
+    dados.forEach(p => {
+      if (p.latitude && p.longitude) {
+        const icone = icones[p.categoria] || icones.outros;
+        const dataFormatada = new Date(p.data).toLocaleDateString('pt-BR');
+        const marker = L.marker([p.latitude, p.longitude], { icon: icone })
           .bindPopup(`
             <div style="min-width: 250px;">
               <b>${p.tipo}</b><br>
@@ -470,9 +535,12 @@
               ` : ''}
             </div>
           `);
-        }
-      });
-    })
+        
+        // Adiciona cada marcador ao grupo de clusters
+        markers.addLayer(marker);
+      }
+    });
+  })
     .catch(error => {
       console.error('Erro ao carregar problemas:', error);
       showNotification('Erro ao carregar problemas', 'error');
